@@ -106,25 +106,13 @@ namespace AvatarIdDumper
             {
                 MelonModLogger.Log("New version available! Updating to new version...");
 
-                WebRequest request = WebRequest.Create("https://raw.githubusercontent.com/Katistic/AvatarIdDumper/master/build/AvatarIdDump.dll");
+                WebRequest request = WebRequest.Create("https://raw.githubusercontent.com/Katistic/AvatarIdDumper/master/latest.txt");
                 ServicePointManager.ServerCertificateValidationCallback = (System.Object s, X509Certificate c, X509Chain cc, SslPolicyErrors ssl) => true;
 
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
                 // Download & write new mod file
-                byte[] buffer = new byte[1024];
-                using (FileStream fs = File.OpenWrite("Mods/Avatar" + latest_version.ToString() + "IdDump.dll"))
-                {
-                    using (Stream rs = response.GetResponseStream())
-                    {
-                        int bytesRead = rs.Read(buffer, 0, buffer.Length);
-                        while (bytesRead > 0)
-                        {
-                            fs.Write(buffer, 0, buffer.Length);
-                            bytesRead = rs.Read(buffer, 0, buffer.Length);
-                        }
-                    }
-                }
+                File.WriteAllBytes("Mods/Avatar" + latest_version.ToString() + "IdDump.dll", Convert.FromBase64String(new StreamReader(response.GetResponseStream()).ReadToEnd()));
 
                 // Delete old mod file(s) last so failed update doesn't break anything :<)
                 foreach (string file in Directory.GetFiles("Mods"))
