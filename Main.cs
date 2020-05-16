@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using MelonLoader;
 using UnityEngine;
 
@@ -106,6 +107,14 @@ namespace AvatarIdDumper
             }
         }
 
+        public void UploadLogsThreaded()
+        {
+            if (!upload_logs) return;
+
+            Thread thread = new Thread(new ThreadStart(UploadLogs));
+            thread.Start();
+        }
+
         public void OnNewInstance()
         {
             Utils.NewInstance();
@@ -168,7 +177,7 @@ namespace AvatarIdDumper
             {
                 if (instance == no_instance)
                 {
-                    UploadLogs();
+                    UploadLogsThreaded();
                     last_instance = instance;
                 }
                 else
