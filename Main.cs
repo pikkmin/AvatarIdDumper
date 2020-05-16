@@ -45,8 +45,9 @@ namespace AvatarIdDumper
 
             if (idList == null || idList.Count == 0) return;
             if (debug) Log("Logging " + idList.Count.ToString() + " avatar ids...");
+            if (!Directory.Exists("ALogs")) Directory.CreateDirectory("ALogs");
 
-            string path = "ALog-" + session.ToString() + "-" + session_start + "-n.txt";
+            string path = "ALogs/ALog-" + session.ToString() + "-" + session_start + "-n.txt";
             using (StreamWriter sw = File.AppendText(path))
             {
                 foreach (string id in idList)
@@ -66,13 +67,13 @@ namespace AvatarIdDumper
 
         public void UploadLogs()
         {
-            if (!upload_logs) return;
+            if (!upload_logs || !Directory.Exists("ALogs")) return;
             if (debug) Log("Trying to upload avatar ids...");
-            foreach (string f in Directory.GetFiles("."))
+            foreach (string f in Directory.GetFiles("ALogs"))
             {
                 try
                 {
-                    if (f.StartsWith(".\\ALog-") && f.EndsWith("-n.txt"))
+                    if (f.Contains("ALog-") && f.EndsWith("-n.txt"))
                     {
                         if (debug) Log("Uploading " + f);
                         byte[] data = File.ReadAllBytes(f);
@@ -159,11 +160,11 @@ namespace AvatarIdDumper
         {
             UploadLogs();
 
-            if (!keep_logs)
+            if (!keep_logs && Directory.Exists("ALogs"))
             {
-                foreach (string file in Directory.GetFiles("Mods"))
+                foreach (string file in Directory.GetFiles("ALogs"))
                 {
-                    if (!file.StartsWith("ALog-")) continue;
+                    if (!file.Contains("ALog-")) continue;
                     File.Delete(file);
                 }
             }
@@ -177,6 +178,7 @@ namespace AvatarIdDumper
             {
                 if (instance == no_instance)
                 {
+                    if (debug) Log("Left instance.");
                     UploadLogsThreaded();
                     last_instance = instance;
                 }
