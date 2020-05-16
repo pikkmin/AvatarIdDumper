@@ -94,6 +94,7 @@ namespace AvatarIdDumper
             {
                 last_instance = instance;
                 if (debug) MelonModLogger.Log("New instance: " + last_instance);
+                Utils.NewInstance();
                 OnNewInstance();
             }
 

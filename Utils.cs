@@ -53,5 +53,10 @@ namespace AvatarIdDumper
             }
             return null;
         }
+
+        public static void NewInstance()
+        {
+            loggedList.Clear();
+        }
     }
 }
