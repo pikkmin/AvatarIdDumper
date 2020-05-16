@@ -26,6 +26,7 @@ namespace AvatarIdDumper
         public static Boolean debug = false;
         public static Boolean keep_logs = true;
         public static Boolean upload_logs = true;
+        public static Boolean bleeding_edge = true;
 
         public void Log(string s)
         {
@@ -130,9 +131,10 @@ namespace AvatarIdDumper
             Log("Avatar Id Dumper has started.");
             no_instance = Utils.GetInstance();
             
-            int latest_version = Utils.GetVersion();
+            int latest_version = Utils.GetVersion(bleeding_edge);
             if (latest_version > version) // When there be an update
             {
+                if (debug && latest_version == 999) Log("Found bleeding-edge update.");
                 Log("New version available! Updating to new version...");
 
                 WebRequest request = WebRequest.Create("https://raw.githubusercontent.com/Katistic/AvatarIdDumper/master/latest.txt");

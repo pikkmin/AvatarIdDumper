@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.Net.Cache;
 using System.Net.Security;
+using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using MelonLoader;
 using VRC;
 using VRC.Core;
 
@@ -57,18 +57,39 @@ namespace AvatarIdDumper
             return PlayerManager.prop_PlayerManager_0;
         }
 
+        public static string GetChecksum(Stream s)
+        {
+            using (SHA256 hasher = SHA256Managed.Create()) return Convert.ToBase64String(hasher.ComputeHash(s));
+        }
+
         // THANK YOU KICHIRO1337/HASH
-        public static int GetVersion()
+        public static int GetVersion(System.Boolean be)
         {
             int version;
 
-            WebRequest request = WebRequest.Create("https://raw.githubusercontent.com/Katistic/AvatarIdDumper/master/version.txt");
-            ServicePointManager.ServerCertificateValidationCallback = (System.Object s, X509Certificate c, X509Chain cc, SslPolicyErrors ssl) => true;
+            if (!be)
+            {
+                WebRequest request = WebRequest.Create("https://raw.githubusercontent.com/Katistic/AvatarIdDumper/master/version.txt");
+                ServicePointManager.ServerCertificateValidationCallback = (System.Object s, X509Certificate c, X509Chain cc, SslPolicyErrors ssl) => true;
 
-            WebResponse response = request.GetResponse();
-            using (StreamReader rs = new StreamReader(response.GetResponseStream())) version = int.Parse(rs.ReadToEnd());
+                WebResponse response = request.GetResponse();
+                using (StreamReader rs = new StreamReader(response.GetResponseStream())) version = int.Parse(rs.ReadToEnd());
 
-            return version;
+                return version;
+            }
+            else
+            {
+                WebRequest request = WebRequest.Create("https://raw.githubusercontent.com/Katistic/AvatarIdDumper/master/latest.txt");
+                ServicePointManager.ServerCertificateValidationCallback = (System.Object s, X509Certificate c, X509Chain cc, SslPolicyErrors ssl) => true;
+
+                string latest;
+                string current;
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                using (MemoryStream s = new MemoryStream(Convert.FromBase64String(new StreamReader(response.GetResponseStream()).ReadToEnd()))) latest = GetChecksum(s);
+                using (Stream s = File.Open("Mods/AvatarIdDump.dll", FileMode.Open)) current = GetChecksum(s);
+
+                return (current == latest) ? 0 : 999;
+            }
         }
 
         public static string GetInstance()
