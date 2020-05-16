@@ -22,7 +22,7 @@ namespace AvatarIdDumper
         {
             List<string> idList = Utils.LogAvatars();
 
-            if (idList.Count == 0) return;
+            if (idList == null || idList.Count == 0) return;
             if (debug) MelonModLogger.Log("Logging " + idList.Count.ToString() + " avatar ids...");
 
             string path = "ALog-" + session.ToString() + "-" + session_start + "-n.txt";
