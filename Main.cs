@@ -16,21 +16,21 @@ namespace AvatarIdDumper
         static float last_routine;
         public static Boolean debug = false;
 
-        public static int usersInSession;
+        public static int usersInSession = 1;
 
         public void Log()
         {
             List<string> idList = Utils.LogAvatars();
 
             if (idList.Count == 0) return;
-            MelonModLogger.Log("Logging " + idList.Count.ToString() + " avatar ids...");
+            if (debug) MelonModLogger.Log("Logging " + idList.Count.ToString() + " avatar ids...");
 
             string path = "ALog-" + session.ToString() + "-" + session_start + "-n.txt";
             using (StreamWriter sw = File.AppendText(path))
             {
                 foreach (string id in idList)
                 {
-                    MelonModLogger.Log(id);
+                    MelonModLogger.Log("Logged id " + id);
                     sw.WriteLine(id);
                 }
             }
@@ -110,12 +110,21 @@ namespace AvatarIdDumper
                 OnNewInstance();
             }
 
-            int userCount = Utils.GetAllPlayers().Count;
+            var users = Utils.GetAllPlayers();
+            int userCount;
+            if (users == null) userCount = 1;
+            else userCount = users.Count;
+
             if (userCount != usersInSession)
             {
+                if (usersInSession < userCount)
+                {
+                    if (debug) MelonModLogger.Log("Player joined, logging avatar");
+                    last_routine = Time.time + 30;
+                    Log();
+                }
+
                 usersInSession = userCount;
-                last_routine = Time.time + 30;
-                Log();
             }
 
             try
