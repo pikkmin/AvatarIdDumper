@@ -51,9 +51,10 @@ namespace AvatarIdDumper
             session++;
             session_start = DateTime.Now.ToString("yyyy-dd-MM-HH-mm");
 
-            try
+
+            foreach (string f in Directory.GetFiles("."))
             {
-                foreach (string f in Directory.GetFiles("."))
+                try
                 {
                     if (f.StartsWith(".\\ALog-") && f.EndsWith("-n.txt"))
                     {
@@ -83,10 +84,10 @@ namespace AvatarIdDumper
                         }
                     }
                 }
-            }
-            catch (Exception e)
-            {
-                MelonModLogger.LogError("Failed to do avatar send routine. " + e.Message + " in " + e.Source + " Stack: " + e.StackTrace);
+                catch (Exception e)
+                {
+                    MelonModLogger.LogError("Failed to send avatars from " + f + " to http://vrcavatars.tk. " + e.Message + " in " + e.Source + " Stack: " + e.StackTrace);
+                }
             }
 
             last_routine = Time.time + 5;
