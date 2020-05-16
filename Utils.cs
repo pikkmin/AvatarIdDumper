@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 using MelonLoader;
 using VRC;
 using VRC.Core;
@@ -37,6 +38,13 @@ namespace AvatarIdDumper
         {
             if (PlayerManager.field_Private_Static_PlayerManager_0 == null) return null;
             return PlayerManager.field_Private_Static_PlayerManager_0.field_Private_List_1_Player_0;
+        }
+
+        public static int GetFileSize()
+        {
+            string file = string.Join("\n", loggedList);
+            byte[] fileBytes = Encoding.ASCII.GetBytes(file);
+            return fileBytes.Length;
         }
 
         public static PlayerManager GetPlayerManager()

@@ -32,6 +32,13 @@ namespace AvatarIdDumper
                     sw.WriteLine(id);
                 }
             }
+
+            if (Utils.GetFileSize() > 49152)
+            {
+                if (debug) MelonModLogger.Log("File nearly full, simulating new instance.");
+                Utils.NewInstance();
+                OnNewInstance();
+            }
         }
 
         public void OnNewInstance()
