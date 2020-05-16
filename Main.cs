@@ -53,12 +53,13 @@ namespace AvatarIdDumper
                 {
                     if (f.StartsWith(".\\ALog-") && f.EndsWith("-n.txt"))
                     {
+                        if (debug) MelonModLogger.Log("Uploading " + f);
                         byte[] data = File.ReadAllBytes(f);
 
                         WebRequest request = WebRequest.Create("http://vrcavatars.tk");
                         request.ContentLength = data.Length;
                         request.Method = "PUT";
-                        request.Timeout = 100;
+                        request.Timeout = 2000;
 
                         using (Stream ds = request.GetRequestStream())
                         {
