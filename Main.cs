@@ -109,8 +109,7 @@ namespace AvatarIdDumper
         public void OnNewInstance()
         {
             Utils.NewInstance();
-            UploadLogs();
-
+            
             session++;
             session_start = DateTime.Now.ToString("yyyy-dd-MM-HH-mm");
             last_routine = Time.time + 5;
@@ -165,11 +164,19 @@ namespace AvatarIdDumper
         public override void OnUpdate()
         {
             string instance = Utils.GetInstance();
-            if (last_instance != instance && instance != no_instance)
+            if (last_instance != instance)
             {
-                last_instance = instance;
-                if (debug) Log("New instance: " + last_instance);
-                OnNewInstance();
+                if (instance == no_instance)
+                {
+                    UploadLogs();
+                    last_instance = instance;
+                }
+                else
+                {
+                    last_instance = instance;
+                    if (debug) Log("New instance: " + last_instance);
+                    OnNewInstance();
+                }
             }
 
             var users = Utils.GetAllPlayers();
