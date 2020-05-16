@@ -47,7 +47,7 @@ namespace AvatarIdDumper
 
             MelonModLogger.Log("New instance, trying to upload avatar ids...");
             session++;
-            session_start = DateTime.Now.ToString("yyyy-dd-M");
+            session_start = DateTime.Now.ToString("yyyy-dd-MM-HH-mm");
 
             try
             {
