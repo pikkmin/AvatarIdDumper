@@ -43,6 +43,8 @@ namespace AvatarIdDumper
 
         public void OnNewInstance()
         {
+            Utils.NewInstance();
+
             MelonModLogger.Log("New instance, trying to upload avatar ids...");
             session++;
             session_start = DateTime.Now.ToString("yyyy-dd-M");
@@ -102,7 +104,6 @@ namespace AvatarIdDumper
             {
                 last_instance = instance;
                 if (debug) MelonModLogger.Log("New instance: " + last_instance);
-                Utils.NewInstance();
                 OnNewInstance();
             }
 
