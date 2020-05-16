@@ -80,11 +80,11 @@ namespace AvatarIdDumper
             last_routine = Time.time + 5;
         }
 
-        public override void OnLevelWasLoaded(int level)
+        public override void OnApplicationStart()
         {
             MelonModLogger.Log("Avatar Id Dumper has started.");
             no_instance = Utils.GetInstance();
-            //base.OnLevelWasLoaded(level);
+            //base.OnApplicationStart();
         }
 
         public override void OnUpdate()
