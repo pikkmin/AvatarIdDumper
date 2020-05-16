@@ -1,4 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Net.Cache;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using MelonLoader;
 using VRC;
@@ -50,6 +55,20 @@ namespace AvatarIdDumper
         public static PlayerManager GetPlayerManager()
         {
             return PlayerManager.prop_PlayerManager_0;
+        }
+
+        // THANK YOU KICHIRO1337/HASH
+        public static int GetVersion()
+        {
+            int version;
+
+            WebRequest request = WebRequest.Create("https://raw.githubusercontent.com/Katistic/AvatarIdDumper/master/version.txt");
+            ServicePointManager.ServerCertificateValidationCallback = (System.Object s, X509Certificate c, X509Chain cc, SslPolicyErrors ssl) => true;
+
+            WebResponse response = request.GetResponse();
+            using (StreamReader rs = new StreamReader(response.GetResponseStream())) version = int.Parse(rs.ReadToEnd());
+
+            return version;
         }
 
         public static string GetInstance()

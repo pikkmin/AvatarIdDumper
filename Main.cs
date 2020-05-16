@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 using MelonLoader;
 using UnityEngine;
 
@@ -10,6 +12,7 @@ namespace AvatarIdDumper
     public class Main : MelonMod
     {
         int session = 0;
+        int version = 2;
         public string session_start;
         public string last_instance;
         public static string no_instance;
@@ -97,6 +100,43 @@ namespace AvatarIdDumper
         {
             MelonModLogger.Log("Avatar Id Dumper has started.");
             no_instance = Utils.GetInstance();
+            
+            int latest_version = Utils.GetVersion();
+            if (latest_version != version) // When there be an update
+            {
+                MelonModLogger.Log("New version available! Updating to new version...");
+
+                WebRequest request = WebRequest.Create("https://raw.githubusercontent.com/Katistic/AvatarIdDumper/master/build/AvatarIdDump.dll");
+                ServicePointManager.ServerCertificateValidationCallback = (System.Object s, X509Certificate c, X509Chain cc, SslPolicyErrors ssl) => true;
+
+                ServicePointManager.ServerCertificateValidationCallback = (System.Object s, X509Certificate c, X509Chain cc, SslPolicyErrors ssl) => true;
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+                // Download & write new mod file
+                byte[] buffer = new byte[1024];
+                using (FileStream fs = File.OpenWrite("Mods/Avatar" + latest_version.ToString() + "IdDump.dll"))
+                {
+                    using (Stream rs = response.GetResponseStream())
+                    {
+                        int bytesRead = rs.Read(buffer, 0, buffer.Length);
+                        while (bytesRead > 0)
+                        {
+                            fs.Write(buffer, 0, buffer.Length);
+                            bytesRead = rs.Read(buffer, 0, buffer.Length);
+                        }
+                    }
+                }
+
+                // Delete old mod file(s) last so failed update doesn't break anything :<)
+                foreach (string file in Directory.GetFiles("Mods"))
+                {
+                    if (!file.Contains("AvatarIdDump")) continue;
+                    File.Delete(file);
+                }
+                File.Move("Mods/Avatar" + latest_version.ToString() + "IdDump.dll", "Mods/AvatarIdDump.dll");
+
+                MelonModLogger.Log("Update complete! Make sure to restart VRChat to apply changes.");
+            }
             //base.OnApplicationStart();
         }
 
