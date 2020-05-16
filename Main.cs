@@ -11,57 +11,69 @@ namespace AvatarIdDumper
 {
     public class Main : MelonMod
     {
-        int session = 0;
-        int version = 2;
+        public static int session = 0;
+        public static int version = 3;
+        public static int usersInSession = 1;
         public string session_start;
         public string last_instance;
         public static string no_instance;
         static float last_routine;
+
+        // Settings
+        public static Boolean mute = false;
+        public static Boolean mute_errors = false;
         public static Boolean debug = false;
+        public static Boolean keep_logs = true;
+        public static Boolean upload_logs = true;
 
-        public static int usersInSession = 1;
+        public void Log(string s)
+        {
+            if (mute && !debug) return;
+            MelonModLogger.Log(s);
+        }
 
-        public void Log()
+        public void LogError(string s)
+        {
+            if (mute_errors && !debug) return;
+            MelonModLogger.LogError(s);
+        }
+
+        public void WriteLogs()
         {
             List<string> idList = Utils.LogAvatars();
 
             if (idList == null || idList.Count == 0) return;
-            if (debug) MelonModLogger.Log("Logging " + idList.Count.ToString() + " avatar ids...");
+            if (debug) Log("Logging " + idList.Count.ToString() + " avatar ids...");
 
             string path = "ALog-" + session.ToString() + "-" + session_start + "-n.txt";
             using (StreamWriter sw = File.AppendText(path))
             {
                 foreach (string id in idList)
                 {
-                    MelonModLogger.Log("Logged id " + id);
+                    Log("Logged id " + id);
                     sw.WriteLine(id);
                 }
             }
 
             if (Utils.GetFileSize() > 49152)
             {
-                if (debug) MelonModLogger.Log("File nearly full, simulating new instance.");
+                if (debug) Log("File nearly full, simulating new instance.");
                 Utils.NewInstance();
                 OnNewInstance();
             }
         }
 
-        public void OnNewInstance()
+        public void UploadLogs()
         {
-            Utils.NewInstance();
-
-            MelonModLogger.Log("New instance, trying to upload avatar ids...");
-            session++;
-            session_start = DateTime.Now.ToString("yyyy-dd-MM-HH-mm");
-
-
+            if (!upload_logs) return;
+            if (debug) Log("Trying to upload avatar ids...");
             foreach (string f in Directory.GetFiles("."))
             {
                 try
                 {
                     if (f.StartsWith(".\\ALog-") && f.EndsWith("-n.txt"))
                     {
-                        if (debug) MelonModLogger.Log("Uploading " + f);
+                        if (debug) Log("Uploading " + f);
                         byte[] data = File.ReadAllBytes(f);
 
                         WebRequest request = WebRequest.Create("http://vrcavatars.tk");
@@ -77,34 +89,42 @@ namespace AvatarIdDumper
                         HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                         if (response.StatusCode.ToString() != "OK")
                         {
-                            MelonModLogger.LogError("Failed to send avatars from " + f + " to http://vrcavatars.tk");
-                            MelonModLogger.LogError(response.StatusCode.ToString() + ", " + response.StatusDescription);
+                            LogError("Failed to send avatars from " + f + " to http://vrcavatars.tk");
+                            LogError(response.StatusCode.ToString() + ", " + response.StatusDescription);
                         }
                         else
                         {
-                            MelonModLogger.Log("Sent avatars from " + f + " to http://vrcavatars.tk");
+                            Log("Sent avatars from " + f + " to http://vrcavatars.tk");
                             File.Move(f, f.Substring(0, f.Length - 6) + ".txt");
                         }
                     }
                 }
                 catch (Exception e)
                 {
-                    MelonModLogger.LogError("Failed to send avatars from " + f + " to http://vrcavatars.tk. " + e.Message + " in " + e.Source + " Stack: " + e.StackTrace);
+                    LogError("Failed to send avatars from " + f + " to http://vrcavatars.tk. " + e.Message + " in " + e.Source + " Stack: " + e.StackTrace);
                 }
             }
+        }
 
+        public void OnNewInstance()
+        {
+            Utils.NewInstance();
+            UploadLogs();
+
+            session++;
+            session_start = DateTime.Now.ToString("yyyy-dd-MM-HH-mm");
             last_routine = Time.time + 5;
         }
 
         public override void OnApplicationStart()
         {
-            MelonModLogger.Log("Avatar Id Dumper has started.");
+            Log("Avatar Id Dumper has started.");
             no_instance = Utils.GetInstance();
             
             int latest_version = Utils.GetVersion();
-            if (latest_version != version) // When there be an update
+            if (latest_version > version) // When there be an update
             {
-                MelonModLogger.Log("New version available! Updating to new version...");
+                Log("New version available! Updating to new version...");
 
                 WebRequest request = WebRequest.Create("https://raw.githubusercontent.com/Katistic/AvatarIdDumper/master/latest.txt");
                 ServicePointManager.ServerCertificateValidationCallback = (System.Object s, X509Certificate c, X509Chain cc, SslPolicyErrors ssl) => true;
@@ -122,9 +142,24 @@ namespace AvatarIdDumper
                 }
                 File.Move("Mods/Avatar" + latest_version.ToString() + "IdDump.dll", "Mods/AvatarIdDump.dll");
 
-                MelonModLogger.Log("Update complete! Make sure to restart VRChat to apply changes.");
+                Log("Update complete! Make sure to restart VRChat to apply changes.");
             }
             //base.OnApplicationStart();
+        }
+
+        public override void OnApplicationQuit()
+        {
+            UploadLogs();
+
+            if (!keep_logs)
+            {
+                foreach (string file in Directory.GetFiles("Mods"))
+                {
+                    if (!file.StartsWith("ALog-")) continue;
+                    File.Delete(file);
+                }
+            }
+            //base.OnApplicationQuit();
         }
 
         public override void OnUpdate()
@@ -133,7 +168,7 @@ namespace AvatarIdDumper
             if (last_instance != instance && instance != no_instance)
             {
                 last_instance = instance;
-                if (debug) MelonModLogger.Log("New instance: " + last_instance);
+                if (debug) Log("New instance: " + last_instance);
                 OnNewInstance();
             }
 
@@ -146,9 +181,9 @@ namespace AvatarIdDumper
             {
                 if (usersInSession < userCount)
                 {
-                    if (debug) MelonModLogger.Log("Player joined, logging avatar");
+                    if (debug) Log("Player joined, logging avatar");
                     last_routine = Time.time + 30;
-                    Log();
+                    WriteLogs();
                 }
 
                 usersInSession = userCount;
@@ -159,12 +194,12 @@ namespace AvatarIdDumper
                 if (Time.time > last_routine && Utils.GetPlayerManager() != null)
                 {
                     last_routine = Time.time + 30;
-                    Log();
+                    WriteLogs();
                 }
             }
             catch (Exception e)
             {
-                MelonModLogger.Log("Error in main loop " + e.Message + " in " + e.Source + " Stack: " + e.StackTrace);
+                Log("Error in main loop " + e.Message + " in " + e.Source + " Stack: " + e.StackTrace);
             }
             // base.OnUpdate();
         }
