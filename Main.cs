@@ -16,6 +16,8 @@ namespace AvatarIdDumper
         static float last_routine;
         public static Boolean debug = false;
 
+        public static int usersInSession;
+
         public void Log()
         {
             List<string> idList = Utils.LogAvatars();
@@ -105,6 +107,14 @@ namespace AvatarIdDumper
                 last_instance = instance;
                 if (debug) MelonModLogger.Log("New instance: " + last_instance);
                 OnNewInstance();
+            }
+
+            int userCount = Utils.GetAllPlayers().Count;
+            if (userCount != usersInSession)
+            {
+                usersInSession = userCount;
+                last_routine = Time.time + 30;
+                Log();
             }
 
             try
