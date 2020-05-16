@@ -109,7 +109,6 @@ namespace AvatarIdDumper
                 WebRequest request = WebRequest.Create("https://raw.githubusercontent.com/Katistic/AvatarIdDumper/master/build/AvatarIdDump.dll");
                 ServicePointManager.ServerCertificateValidationCallback = (System.Object s, X509Certificate c, X509Chain cc, SslPolicyErrors ssl) => true;
 
-                ServicePointManager.ServerCertificateValidationCallback = (System.Object s, X509Certificate c, X509Chain cc, SslPolicyErrors ssl) => true;
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
                 // Download & write new mod file
