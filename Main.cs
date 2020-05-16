@@ -51,7 +51,7 @@ namespace AvatarIdDumper
                         WebRequest request = WebRequest.Create("http://vrcavatars.tk");
                         request.ContentLength = data.Length;
                         request.Method = "PUT";
-                        request.Timeout = 500;
+                        request.Timeout = 100;
 
                         using (Stream ds = request.GetRequestStream())
                         {
