@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Security;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using MelonLoader;
@@ -19,6 +20,9 @@ namespace AvatarIdDumper
         public string last_instance;
         public static string no_instance;
         static float last_routine;
+
+        private delegate void AvatarInstantiateDelegate(IntPtr @this, IntPtr a_ptr, IntPtr a_desc_ptr, bool loaded);
+        private static AvatarInstantiateDelegate on_avatar_instantiate_delegate;
 
         // Settings
         public static Boolean mute = false;
@@ -42,8 +46,6 @@ namespace AvatarIdDumper
 
         public static void WriteLogs(List<string> idList)
         {
-            List<string> idList = Utils.LogAvatars();
-
             if (idList == null || idList.Count == 0) return;
             if (debug) Log("Logging " + idList.Count.ToString() + " avatar ids...");
             if (!Directory.Exists("ALogs")) Directory.CreateDirectory("ALogs");
@@ -117,7 +119,13 @@ namespace AvatarIdDumper
             thread.Start();
         }
 
-        public void OnNewInstance()
+        // Thank you charlesdeepk
+        // https://github.com/charlesdeepk/MultiplayerDynamicBonesMod/blob/bd992ad538f7e5fdd3939ae8d18bf19a82fba0a0/Main.cs#L84
+        public static void Hook(IntPtr target, IntPtr detour)
+        {
+            typeof(Imports).GetMethod("Hook", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic).Invoke(null, new object[] { target, detour });
+        }
+
         public static void OnNewInstance()
         {
             Utils.NewInstance();
@@ -131,7 +139,15 @@ namespace AvatarIdDumper
         {
             Log("Avatar Id Dumper has started.");
             no_instance = Utils.GetInstance();
-            
+
+            // Thank you charlesdeepk, his work is pretty great
+            // https://github.com/charlesdeepk/MultiplayerDynamicBonesMod/blob/bd992ad538f7e5fdd3939ae8d18bf19a82fba0a0/Main.cs#L214
+
+            IntPtr hook_func = (IntPtr)typeof(VRCAvatarManager.MulticastDelegateNPublicSealedVoGaVRBoObVoInBeInGaUnique).GetField("NativeMethodInfoPtr_Invoke_Public_Virtual_New_Void_GameObject_VRC_AvatarDescriptor_Boolean_0", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static).GetValue(null);
+            Hook(hook_func, new System.Action<IntPtr, IntPtr, IntPtr, bool>(OnAvatarInstantiate).Method.MethodHandle.GetFunctionPointer());
+            on_avatar_instantiate_delegate = Marshal.GetDelegateForFunctionPointer<AvatarInstantiateDelegate>(*(IntPtr*)hook_func);
+            if (debug) Log("Hook OnAvatarInstantiate " + ((on_avatar_instantiate_delegate != null) ? "succeeded!" : "failed!"));
+
             int latest_version = Utils.GetVersion(bleeding_edge);
             if (latest_version > version) // When there be an update
             {
@@ -176,6 +192,23 @@ namespace AvatarIdDumper
             //base.OnApplicationQuit();
         }
 
+        private static void OnAvatarInstantiate(IntPtr @this, IntPtr a_ptr, IntPtr a_desc_ptr, bool loaded)
+        {
+            on_avatar_instantiate_delegate(@this, a_ptr, a_desc_ptr, loaded);
+
+            if (loaded)
+            {
+                GameObject avatar = new GameObject(a_ptr);
+                VRCPlayer user = avatar.transform.root.GetComponentInChildren<VRCPlayer>();
+                if (user.prop_Player_0.field_Private_APIUser_0.id != VRCPlayer.field_Internal_Static_VRCPlayer_0.prop_Player_0.field_Private_APIUser_0.id && !Utils.loggedList.Contains(user.prop_Player_0.field_Private_APIUser_0.id))
+                {
+                    if (debug) Log("New avatar loaded (OnAvatarInstantiate)!");
+                    Utils.loggedList.Add(user.prop_ApiAvatar_0.id);
+                    WriteLogs(new List<string> { user.prop_ApiAvatar_0.id });
+                }
+            }
+        }
+
         public override void OnUpdate()
         {
             string instance = Utils.GetInstance();
@@ -195,34 +228,38 @@ namespace AvatarIdDumper
                 }
             }
 
-            var users = Utils.GetAllPlayers();
-            int userCount;
-            if (users == null) userCount = 1;
-            else userCount = users.Count;
-
-            if (userCount != usersInSession)
-            {
-                if (usersInSession < userCount)
-                {
-                    if (debug) Log("Player joined, logging avatar");
-                    last_routine = Time.time + 30;
-                    WriteLogs();
-                }
-
-                usersInSession = userCount;
-            }
-
             try
             {
-                if (Time.time > last_routine && Utils.GetPlayerManager() != null)
+                if (last_routine != 0 && Time.time > last_routine && Utils.GetPlayerManager() != null)
                 {
-                    last_routine = Time.time + 30;
-                    WriteLogs();
+                    last_routine = (on_avatar_instantiate_delegate != null) ? Time.time + 30: 0;
+                    WriteLogs(Utils.LogAvatars());
                 }
             }
             catch (Exception e)
             {
                 Log("Error in main loop " + e.Message + " in " + e.Source + " Stack: " + e.StackTrace);
+            }
+
+            // Only do intensive OnUpdate if OnAvatarInstantiate hook fails - to shorten frames
+            if (on_avatar_instantiate_delegate == null)
+            {
+                var users = Utils.GetAllPlayers();
+                int userCount;
+                if (users == null) userCount = 1;
+                else userCount = users.Count;
+
+                if (userCount != usersInSession)
+                {
+                    if (usersInSession < userCount)
+                    {
+                        if (debug) Log("Player joined, logging avatar");
+                        last_routine = Time.time + 30;
+                        WriteLogs(Utils.LogAvatars());
+                    }
+
+                    usersInSession = userCount;
+                }
             }
             // base.OnUpdate();
         }
