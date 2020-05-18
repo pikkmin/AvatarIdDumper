@@ -14,7 +14,7 @@ namespace AvatarIdDumper
     public class Main : MelonMod
     {
         public static int session = 0;
-        public static int version = 3;
+        public static int version = 6;
         public static int usersInSession = 1;
         public static string session_start;
         public string last_instance;
@@ -129,7 +129,7 @@ namespace AvatarIdDumper
         public static void OnNewInstance()
         {
             Utils.NewInstance();
-            
+
             session++;
             session_start = DateTime.Now.ToString("yyyy-dd-MM-HH-mm");
             last_routine = Time.time + 5;
