@@ -95,7 +95,7 @@ namespace AvatarIdDumper
         public static string GetInstance()
         {
             ApiWorld currentRoom = RoomManagerBase.field_Internal_Static_ApiWorld_0;
-            if (((currentRoom != null) ? currentRoom.currentInstanceIdOnly : null) != null)
+            if (currentRoom != null)
             {
                 return currentRoom.id + ":" + currentRoom.currentInstanceIdWithTags;
             }
