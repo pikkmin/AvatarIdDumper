@@ -165,10 +165,12 @@ namespace AvatarIdDumper
 
             if (!keep_logs && Directory.Exists("ALogs"))
             {
+                if (debug) Log("Removing logs...");
                 foreach (string file in Directory.GetFiles("ALogs"))
                 {
                     if (!file.Contains("ALog-")) continue;
                     File.Delete(file);
+                    Log("Deleted file " + file);
                 }
             }
             //base.OnApplicationQuit();
