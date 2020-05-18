@@ -15,7 +15,7 @@ namespace AvatarIdDumper
         public static int session = 0;
         public static int version = 3;
         public static int usersInSession = 1;
-        public string session_start;
+        public static string session_start;
         public string last_instance;
         public static string no_instance;
         static float last_routine;
@@ -26,21 +26,21 @@ namespace AvatarIdDumper
         public static Boolean debug = false;
         public static Boolean keep_logs = true;
         public static Boolean upload_logs = true;
-        public static Boolean bleeding_edge = true;
+        public static Boolean bleeding_edge = false;
 
-        public void Log(string s)
+        public static void Log(string s)
         {
             if (mute && !debug) return;
             MelonModLogger.Log(s);
         }
 
-        public void LogError(string s)
+        public static void LogError(string s)
         {
             if (mute_errors && !debug) return;
             MelonModLogger.LogError(s);
         }
 
-        public void WriteLogs()
+        public static void WriteLogs(List<string> idList)
         {
             List<string> idList = Utils.LogAvatars();
 
@@ -118,6 +118,7 @@ namespace AvatarIdDumper
         }
 
         public void OnNewInstance()
+        public static void OnNewInstance()
         {
             Utils.NewInstance();
             
@@ -126,7 +127,7 @@ namespace AvatarIdDumper
             last_routine = Time.time + 5;
         }
 
-        public override void OnApplicationStart()
+        public unsafe override void OnApplicationStart()
         {
             Log("Avatar Id Dumper has started.");
             no_instance = Utils.GetInstance();
