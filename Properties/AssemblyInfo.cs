@@ -36,5 +36,5 @@ using MelonLoader;
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
 
-[assembly: MelonModInfo(typeof(AvatarIdDumper.Main), "Avatar Id Dumper", "0.0.6", "Katistic", "https://github.com/Katistic/AvatarIdDumper/releases")]
+[assembly: MelonModInfo(typeof(AvatarIdDumper.Main), "Avatar Id Dumper", "0.0.7", "Katistic", "https://github.com/Katistic/AvatarIdDumper/releases")]
 [assembly: MelonModGame("VRChat", "VRChat")]

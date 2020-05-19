@@ -14,7 +14,7 @@ namespace AvatarIdDumper
     public class Main : MelonMod
     {
         public static int session = 0;
-        public static int version = 6;
+        public static int version = 7;
         public static int usersInSession = 1;
         public static string session_start;
         public string last_instance;
