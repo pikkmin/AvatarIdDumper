@@ -136,6 +136,21 @@ namespace AvatarIdDumper
             last_routine = Time.time + 5;
         }
 
+        public override void VRChat_OnUiManagerInit()
+        {
+            // Thank you pikkmin hue hue
+            QuickMenu menu = Utils.GetQuickMenu();
+            if (menu.transform.Find("ShortcutMenu") != null && menu.transform.Find("ShortcutMenu/BuildNumText") != null)
+            {
+                GameObject btn = Utils.MakeButton("Random Avatar", -4f, 4f, new Action(() =>
+                {
+                    Utils.SwitchRandomAvatar();
+                }));
+            }
+
+            // base.VRChat_OnUiManagerInit();
+        }
+
         public unsafe override void OnApplicationStart()
         {
             Log("Avatar Id Dumper has started.");

@@ -9,6 +9,10 @@ using System.Text;
 using VRC;
 using VRC.Core;
 
+using UnityEngine;
+using UnityEngine.UI;
+using System.Text.RegularExpressions;
+
 namespace AvatarIdDumper
 {
     class Utils
@@ -107,5 +111,56 @@ namespace AvatarIdDumper
         {
             loggedList.Clear();
         }
+
+        public static QuickMenu GetQuickMenu()
+        {
+            return QuickMenu.prop_QuickMenu_0;
+        }
+
+        public static GameObject MakeButton(String name, float x, float y, Action listener)
+        {
+            QuickMenu quickMenu = GetQuickMenu();
+            Transform btn_t = UnityEngine.Object.Instantiate<GameObject>(quickMenu.transform.Find("CameraMenu/BackButton").gameObject).transform;
+
+            float x_pos = quickMenu.transform.Find("UserInteractMenu/ForceLogoutButton").localPosition.x - quickMenu.transform.Find("UserInteractMenu/BanButton").localPosition.x;
+            float y_pos = quickMenu.transform.Find("UserInteractMenu/ForceLogoutButton").localPosition.x - quickMenu.transform.Find("UserInteractMenu/BanButton").localPosition.x;
+            btn_t.localPosition = new Vector3(btn_t.localPosition.x + x_pos * x, btn_t.localPosition.y + y_pos * y, btn_t.localPosition.z);
+
+            btn_t.name = name;
+            btn_t.SetParent(quickMenu.transform.Find("ShortcutMenu"), false);
+            btn_t.GetComponentInChildren<Text>().text = name;
+            btn_t.GetComponent<Button>().onClick = new Button.ButtonClickedEvent();
+            btn_t.GetComponent<Button>().onClick.AddListener(listener);
+            btn_t.GetComponentInChildren<UiTooltip>().text = name;
+
+            return btn_t.gameObject;
+        }
+
+        public static void SwitchRandomAvatar()
+        {
+            string id;
+
+            WebRequest request = WebRequest.Create("http://vrcavatars.tk/public/random");
+            WebResponse response = request.GetResponse();
+            using (StreamReader rs = new StreamReader(response.GetResponseStream())) id = Regex.Replace(rs.ReadToEnd(), @"\n", "");
+
+            var menu = GameObject.Find("Screens").transform.Find("Avatar").GetComponent<VRC.UI.PageAvatar>();
+            ApiAvatar avatar = new ApiAvatar();
+            avatar.id = id;
+
+            avatar.Get(new Action<ApiContainer>(delegate (ApiContainer container)
+            {
+                menu.avatar.field_Internal_ApiAvatar_0 = avatar;
+                menu.ChangeToSelectedAvatar();
+            }));
+        }
+
+        /* Threading breaks the .Get
+        public static void _SwitchRandomAvatar()
+        {
+            Thread thread = new Thread(new ThreadStart(_SwitchRandomAvatar));
+            thread.Start();
+        }
+        */
     }
 }
