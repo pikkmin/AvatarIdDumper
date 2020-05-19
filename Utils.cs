@@ -24,6 +24,7 @@ namespace AvatarIdDumper
             for (var c = 0; c < users.Count; c++)
             {
                 var user = users[c];
+                if (Main.public_only && user.prop_VRCAvatarManager_0.field_Private_ApiAvatar_0.releaseStatus != "public") continue;
                 if (user == null || user.prop_VRCAvatarManager_0 == null || user.field_Private_APIUser_0 == null) continue;
                 if (user.field_Private_VRCAvatarManager_0 == null || user.field_Private_VRCAvatarManager_0.field_Private_ApiAvatar_0 == null) continue;
                 if (VRCPlayer.field_Internal_Static_VRCPlayer_0 == null) continue;

@@ -30,6 +30,7 @@ namespace AvatarIdDumper
         public static Boolean debug = false;
         public static Boolean keep_logs = true;
         public static Boolean upload_logs = true;
+        public static Boolean public_only = true;
         public static Boolean bleeding_edge = false;
 
         public static void Log(string s)
@@ -200,6 +201,7 @@ namespace AvatarIdDumper
             {
                 GameObject avatar = new GameObject(a_ptr);
                 VRCPlayer user = avatar.transform.root.GetComponentInChildren<VRCPlayer>();
+                if (public_only && user.prop_VRCAvatarManager_0.field_Private_ApiAvatar_0.releaseStatus != "public") return;
                 if (user.prop_Player_0.field_Private_APIUser_0.id != VRCPlayer.field_Internal_Static_VRCPlayer_0.prop_Player_0.field_Private_APIUser_0.id && !Utils.loggedList.Contains(user.prop_Player_0.field_Private_APIUser_0.id))
                 {
                     if (debug) Log("New avatar loaded (OnAvatarInstantiate)!");
