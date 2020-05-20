@@ -144,7 +144,6 @@ namespace AvatarIdDumper
             {
                 GameObject btn = Utils.MakeButton("Random Avatar", -4f, 4f, new Action(() =>
                 {
-                    Log("Switching to random avatar...");
                     Utils.SwitchRandomAvatar();
                 }));
             }
@@ -156,6 +155,11 @@ namespace AvatarIdDumper
         {
             Log("Avatar Id Dumper has started.");
             no_instance = Utils.GetInstance();
+            
+            var ini = new inifile("AvaDCFG.ini");
+            ini.setup();
+
+          
 
             // Thank you charlesdeepk, his work is pretty great
             // https://github.com/charlesdeepk/MultiplayerDynamicBonesMod/blob/bd992ad538f7e5fdd3939ae8d18bf19a82fba0a0/Main.cs#L214
@@ -218,7 +222,6 @@ namespace AvatarIdDumper
                 GameObject avatar = new GameObject(a_ptr);
                 VRCPlayer user = avatar.transform.root.GetComponentInChildren<VRCPlayer>();
                 if (public_only && user.prop_VRCAvatarManager_0.field_Private_ApiAvatar_0.releaseStatus != "public") return;
-                if (Utils.loggedList.Contains(user.prop_ApiAvatar_0.id)) return;
                 if (user.prop_Player_0.field_Private_APIUser_0.id != VRCPlayer.field_Internal_Static_VRCPlayer_0.prop_Player_0.field_Private_APIUser_0.id && !Utils.loggedList.Contains(user.prop_Player_0.field_Private_APIUser_0.id))
                 {
                     if (debug) Log("New avatar loaded (OnAvatarInstantiate)!");
